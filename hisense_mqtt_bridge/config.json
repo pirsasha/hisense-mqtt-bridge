@@ -5,7 +5,7 @@
   "description": "MQTT-мост для управления телевизорами Hisense через Home Assistant. С логами и веб-интерфейсом.",
   "startup": "application",
   "boot": "auto",
-  "webui": "http://[HOST]:8099",
+  "webui": "http://[HOST]:[PORT:8099]"
   "ingress": false,
   "host_network": true,
   "ports": {
