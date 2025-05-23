@@ -1,8 +1,8 @@
 {
-  "name": "Hisense MQTT Bridge (mosquitto)",
-  "version": "1.7",
+  "name": "Hisense MQTT Bridge (Node.js)",
+  "version": "2.0",
   "slug": "hisense_mqtt_bridge",
-  "description": "MQTT-мост для Hisense через mosquitto_sub с сертификатами. Без ошибок SSL.",
+  "description": "MQTT-мост на Node.js с полной эмуляцией MQTT Explorer для телевизоров Hisense.",
   "startup": "application",
   "boot": "auto",
   "webui": "http://[HOST]:[PORT:8099]",
