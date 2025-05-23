@@ -1,8 +1,8 @@
 {
-  "name": "Hisense MQTT Bridge (HA mirror)",
-  "version": "2.1",
+  "name": "Hisense MQTT Bridge (Configurable)",
+  "version": "2.2",
   "slug": "hisense_mqtt_bridge",
-  "description": "MQTT-мост для Hisense TV с зеркалированием топиков в локальный MQTT Home Assistant.",
+  "description": "MQTT-мост для Hisense TV с пробросом в MQTT Home Assistant и настраиваемыми параметрами.",
   "startup": "application",
   "boot": "auto",
   "webui": "http://[HOST]:[PORT:8099]",
@@ -13,6 +13,16 @@
   },
   "map": ["ssl:ro"],
   "arch": ["amd64", "aarch64", "armv7"],
-  "options": {},
-  "schema": {}
+  "options": {
+    "mqtt_host": "192.168.2.102",
+    "mqtt_port": 1883,
+    "mqtt_username": "pirsasha",
+    "mqtt_password": "Ps!628227!"
+  },
+  "schema": {
+    "mqtt_host": "str?",
+    "mqtt_port": "int?",
+    "mqtt_username": "str?",
+    "mqtt_password": "str?"
+  }
 }

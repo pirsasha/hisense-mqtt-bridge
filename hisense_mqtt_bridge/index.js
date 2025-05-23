@@ -1,7 +1,11 @@
 const mqtt = require("mqtt");
 const fs = require("fs");
 
-const options = {
+// Загрузка конфигурации из options.json
+const config = JSON.parse(fs.readFileSync("/data/options.json", "utf8"));
+
+// Подключение к Hisense MQTT
+const hisenseOptions = {
   host: "192.168.2.150",
   port: 36669,
   protocol: "mqtts",
@@ -13,8 +17,15 @@ const options = {
   rejectUnauthorized: false
 };
 
-const hisenseClient = mqtt.connect(options);
-const localClient = mqtt.connect("mqtt://localhost:1883");
+const hisenseClient = mqtt.connect(hisenseOptions);
+
+// Подключение к локальному MQTT
+const localClient = mqtt.connect({
+  host: config.mqtt_host || "localhost",
+  port: config.mqtt_port || 1883,
+  username: config.mqtt_username,
+  password: config.mqtt_password
+});
 
 hisenseClient.on("connect", () => {
   console.log("✅ Connected to Hisense MQTT");
