@@ -1,6 +1,6 @@
 {
   "name": "Hisense MQTT Bridge (Configurable)",
-  "version": "2.2",
+  "version": "2.3",
   "slug": "hisense_mqtt_bridge",
   "description": "MQTT-мост для Hisense TV с пробросом в MQTT Home Assistant и настраиваемыми параметрами.",
   "startup": "application",
