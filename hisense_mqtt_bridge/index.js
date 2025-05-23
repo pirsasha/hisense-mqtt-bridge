@@ -1,11 +1,11 @@
 const mqtt = require("mqtt");
 const fs = require("fs");
 
-// Загрузка конфигурации из options.json
+// Загрузка конфигурации
 const config = JSON.parse(fs.readFileSync("/data/options.json", "utf8"));
 
-// Подключение к Hisense MQTT
-const hisenseOptions = {
+// Hisense MQTT (TLS)
+const hisenseClient = mqtt.connect({
   host: "192.168.2.150",
   port: 36669,
   protocol: "mqtts",
@@ -15,11 +15,9 @@ const hisenseOptions = {
   cert: fs.readFileSync("/ssl/rcm_certchain_pem.cer"),
   key: fs.readFileSync("/ssl/rcm_pem_privkey.pkcs8"),
   rejectUnauthorized: false
-};
+});
 
-const hisenseClient = mqtt.connect(hisenseOptions);
-
-// Подключение к локальному MQTT
+// Home Assistant MQTT
 const localClient = mqtt.connect({
   host: config.mqtt_host || "localhost",
   port: config.mqtt_port || 1883,
@@ -27,6 +25,7 @@ const localClient = mqtt.connect({
   password: config.mqtt_password
 });
 
+// От Hisense к HA
 hisenseClient.on("connect", () => {
   console.log("✅ Connected to Hisense MQTT");
   hisenseClient.subscribe("#", (err) => {
@@ -37,11 +36,28 @@ hisenseClient.on("connect", () => {
 
 hisenseClient.on("message", (topic, message) => {
   const payload = message.toString();
-  console.log(`📩 [${topic}] ${payload}`);
   const cleanTopic = topic.startsWith("/") ? topic.slice(1) : topic;
+  console.log(`📩 [${topic}] ${payload}`);
   localClient.publish(`hisense/${cleanTopic}`, payload);
 });
 
-hisenseClient.on("error", (err) => {
-  console.error("❌ Connection error:", err);
+// От HA к Hisense
+localClient.on("connect", () => {
+  console.log("✅ Connected to local MQTT");
+  localClient.subscribe("hisense/command", (err) => {
+    if (err) console.error("❌ Error subscribing to hisense/command:", err);
+    else console.log("📥 Subscribed to hisense/command");
+  });
 });
+
+localClient.on("message", (topic, message) => {
+  const command = message.toString().trim();
+  if (topic === "hisense/command") {
+    const payload = JSON.stringify({ keycode: command });
+    hisenseClient.publish("/remoteapp/mobile/request/keyevent", payload);
+    console.log(`📤 Sent command to Hisense: ${command}`);
+  }
+});
+
+hisenseClient.on("error", (err) => console.error("❌ Hisense error:", err));
+localClient.on("error", (err) => console.error("❌ Local MQTT error:", err));
