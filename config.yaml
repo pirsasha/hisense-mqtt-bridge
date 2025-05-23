@@ -1,0 +1,13 @@
+name: "Hisense MQTT Bridge"
+version: "1.0"
+slug: "hisense_mqtt_bridge"
+description: "Bridge to connect Home Assistant to Hisense TV via MQTT with TLS support"
+startup: application
+boot: auto
+host_network: true
+privileged:
+  - NET_ADMIN
+options:
+  log_level: info
+schema:
+  log_level: "match(^debug|info|warning|error|fatal$)"
