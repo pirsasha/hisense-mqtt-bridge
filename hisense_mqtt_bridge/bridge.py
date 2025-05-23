@@ -17,9 +17,8 @@ def on_message(client, userdata, msg):
 client = mqtt.Client()
 client.username_pw_set(MQTT_USER, MQTT_PASS)
 
-# Используем client cert/key, но отключаем валидацию сервера
 client.tls_set(
-    ca_certs=None,
+    ca_certs="/ssl/rcm_ca.crt",
     certfile="/ssl/rcm_certchain_pem.cer",
     keyfile="/ssl/rcm_pem_privkey.pkcs8",
     tls_version=ssl.PROTOCOL_TLS_CLIENT

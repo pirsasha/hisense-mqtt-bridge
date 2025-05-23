@@ -1,8 +1,8 @@
 {
   "name": "Hisense MQTT Bridge",
-  "version": "1.4.2",
+  "version": "1.4",
   "slug": "hisense_mqtt_bridge",
-  "description": "MQTT-мост для управления телевизорами Hisense через Home Assistant с поддержкой TLS (client cert+key).",
+  "description": "MQTT-мост для управления телевизорами Hisense через Home Assistant с поддержкой TLS (self-signed CA).",
   "startup": "application",
   "boot": "auto",
   "webui": "http://[HOST]:[PORT:8099]",
