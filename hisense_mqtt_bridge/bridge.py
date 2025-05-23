@@ -19,12 +19,13 @@ client.tls_set(
     keyfile="/ssl/rcm_pem_privkey.pkcs8",
     tls_version=ssl.PROTOCOL_TLS_CLIENT
 )
-client.tls_insecure_set(True)  # <--- вот это
+client.tls_insecure_set(True)  # <-- обязательно ДО connect
 
 client.on_connect = on_connect
 client.on_message = on_message
 
 try:
+    print("🔗 Подключаюсь к MQTT...")
     client.connect(MQTT_HOST, MQTT_PORT)
     client.loop_forever()
 except Exception as e:
