@@ -1,6 +1,6 @@
 {
   "name": "Hisense MQTT Bridge (UUID Auto)",
-  "version": "2.4",
+  "version": "2.5",
   "slug": "hisense_mqtt_bridge",
   "description": "Автоопределение UUID и управление Hisense TV через MQTT.",
   "startup": "application",
