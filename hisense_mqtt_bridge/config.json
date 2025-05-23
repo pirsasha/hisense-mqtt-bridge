@@ -1,6 +1,6 @@
 {
   "name": "Hisense MQTT Bridge (Commands)",
-  "version": "2.3",
+  "version": "2.4",
   "slug": "hisense_mqtt_bridge",
   "description": "Мост между Home Assistant и Hisense TV с приёмом и отправкой команд по MQTT.",
   "startup": "application",
