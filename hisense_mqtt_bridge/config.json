@@ -1,8 +1,8 @@
 {
-  "name": "Hisense MQTT Bridge (Commands)",
+  "name": "Hisense MQTT Bridge (UUID Auto)",
   "version": "2.4",
   "slug": "hisense_mqtt_bridge",
-  "description": "Мост между Home Assistant и Hisense TV с приёмом и отправкой команд по MQTT.",
+  "description": "Автоопределение UUID и управление Hisense TV через MQTT.",
   "startup": "application",
   "boot": "auto",
   "webui": "http://[HOST]:[PORT:8099]",

@@ -1,10 +1,9 @@
 const mqtt = require("mqtt");
 const fs = require("fs");
 
-// Загрузка конфигурации
+// Конфиг HA MQTT
 const config = JSON.parse(fs.readFileSync("/data/options.json", "utf8"));
 
-// Hisense MQTT (TLS)
 const hisenseClient = mqtt.connect({
   host: "192.168.2.150",
   port: 36669,
@@ -17,7 +16,6 @@ const hisenseClient = mqtt.connect({
   rejectUnauthorized: false
 });
 
-// Home Assistant MQTT
 const localClient = mqtt.connect({
   host: config.mqtt_host || "localhost",
   port: config.mqtt_port || 1883,
@@ -25,13 +23,12 @@ const localClient = mqtt.connect({
   password: config.mqtt_password
 });
 
-// От Hisense к HA
+let hisenseUUID = null;
+
+// Обработка сообщений от Hisense
 hisenseClient.on("connect", () => {
   console.log("✅ Connected to Hisense MQTT");
-  hisenseClient.subscribe("#", (err) => {
-    if (err) console.log("❌ Subscribe error:", err);
-    else console.log("📡 Subscribed to all topics");
-  });
+  hisenseClient.subscribe("#", () => console.log("📡 Subscribed to all topics"));
 });
 
 hisenseClient.on("message", (topic, message) => {
@@ -39,23 +36,40 @@ hisenseClient.on("message", (topic, message) => {
   const cleanTopic = topic.startsWith("/") ? topic.slice(1) : topic;
   console.log(`📩 [${topic}] ${payload}`);
   localClient.publish(`hisense/${cleanTopic}`, payload);
+
+  // Автоопределение UUID
+  if (topic.endsWith("uuidlist/data")) {
+    try {
+      const uuids = JSON.parse(payload);
+      const found = uuids.find(u => u.uuid && u.uuid.includes(":"));
+      if (found) {
+        hisenseUUID = found.uuid;
+        console.log(`🔑 Hisense UUID найден: ${hisenseUUID}`);
+      }
+    } catch (e) {
+      console.error("❌ Ошибка парсинга uuidlist:", e.message);
+    }
+  }
 });
 
-// От HA к Hisense
+// Обработка команд от Home Assistant
 localClient.on("connect", () => {
   console.log("✅ Connected to local MQTT");
   localClient.subscribe("hisense/command", (err) => {
-    if (err) console.error("❌ Error subscribing to hisense/command:", err);
-    else console.log("📥 Subscribed to hisense/command");
+    if (!err) console.log("📥 Subscribed to hisense/command");
   });
 });
 
 localClient.on("message", (topic, message) => {
   const command = message.toString().trim();
   if (topic === "hisense/command") {
-    const payload = JSON.stringify({ keycode: command });
-    hisenseClient.publish("/remoteapp/mobile/request/keyevent", payload);
-    console.log(`📤 Sent command to Hisense: ${command}`);
+    if (!hisenseUUID) {
+      console.warn("⚠️ UUID ещё не получен. Команда не отправлена.");
+      return;
+    }
+    const targetTopic = `/remoteapp/tv/remote_service/${hisenseUUID}$vidaa_common/actions/sendkey`;
+    hisenseClient.publish(targetTopic, command);
+    console.log(`📤 Sent command: ${command} → ${targetTopic}`);
   }
 });
 

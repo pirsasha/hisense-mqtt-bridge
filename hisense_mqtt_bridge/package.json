@@ -1,7 +1,7 @@
 {
   "name": "hisense-mqtt-bridge",
-  "version": "2.3.0",
-  "description": "MQTT Bridge with command support for Hisense TV",
+  "version": "2.4.0",
+  "description": "MQTT Bridge with UUID autodetect for Hisense TV",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
