@@ -14,9 +14,9 @@ def on_message(client, userdata, msg):
 
 client = mqtt.Client()
 client.tls_set(
-    ca_certs="/ssl/hisense_ca.crt",
-    certfile="/ssl/client.crt",
-    keyfile="/ssl/client.key",
+    ca_certs=None,
+    certfile="/ssl/rcm_certchain_pem.cer",
+    keyfile="/ssl/rcm_pem_privkey.pkcs8",
     tls_version=ssl.PROTOCOL_TLS_CLIENT
 )
 
