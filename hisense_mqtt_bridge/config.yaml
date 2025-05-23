@@ -1,5 +1,5 @@
 name: "Hisense MQTT Bridge"
-version: "1.0"
+version: "1.1"
 slug: "hisense_mqtt_bridge"
 description: "Bridge to connect Home Assistant to Hisense TV via MQTT with TLS support"
 startup: application
