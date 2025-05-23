@@ -1,6 +1,6 @@
 {
   "name": "Hisense MQTT Bridge (mosquitto)",
-  "version": "1.6",
+  "version": "1.7",
   "slug": "hisense_mqtt_bridge",
   "description": "MQTT-мост для Hisense через mosquitto_sub с сертификатами. Без ошибок SSL.",
   "startup": "application",
