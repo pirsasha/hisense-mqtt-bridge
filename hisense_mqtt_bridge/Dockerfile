@@ -1,6 +1,6 @@
 FROM alpine:latest
 
-RUN apk add --no-cache bash python3 py3-flask
+RUN apk add --no-cache bash python3 py3-paho-mqtt py3-flask
 
 WORKDIR /app
 COPY run.sh .
