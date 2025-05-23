@@ -1,12 +1,12 @@
-FROM homeassistant/amd64-base-debian:bullseye
+FROM alpine:latest
 
-ENV LANG C.UTF-8
+RUN apk add --no-cache bash python3 py3-pip
+RUN pip3 install flask
 
-RUN apt-get update && \
-    apt-get install -y mosquitto-clients && \
-    apt-get clean
+WORKDIR /app
+COPY run.sh .
+COPY bridge.py .
+COPY webserver.py .
+COPY web /app/web
 
-COPY run.sh /run.sh
-RUN chmod a+x /run.sh
-
-CMD [ "/run.sh" ]
+CMD ["bash", "run.sh"]
