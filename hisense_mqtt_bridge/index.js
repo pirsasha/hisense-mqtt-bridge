@@ -38,7 +38,8 @@ hisenseClient.on("connect", () => {
 hisenseClient.on("message", (topic, message) => {
   const payload = message.toString();
   console.log(`📩 [${topic}] ${payload}`);
-  localClient.publish(`hisense/${topic}`, payload);
+  const cleanTopic = topic.startsWith("/") ? topic.slice(1) : topic;
+  localClient.publish(`hisense/${cleanTopic}`, payload);
 });
 
 hisenseClient.on("error", (err) => {
