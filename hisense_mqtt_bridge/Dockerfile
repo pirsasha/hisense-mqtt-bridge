@@ -1,7 +1,6 @@
 FROM alpine:latest
 
-RUN apk add --no-cache bash python3 py3-pip
-RUN pip3 install flask
+RUN apk add --no-cache bash python3 py3-flask
 
 WORKDIR /app
 COPY run.sh .
