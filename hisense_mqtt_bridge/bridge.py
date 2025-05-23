@@ -19,6 +19,7 @@ client.tls_set(
     keyfile="/ssl/rcm_pem_privkey.pkcs8",
     tls_version=ssl.PROTOCOL_TLS_CLIENT
 )
+client.tls_insecure_set(True)  # <--- вот это
 
 client.on_connect = on_connect
 client.on_message = on_message
