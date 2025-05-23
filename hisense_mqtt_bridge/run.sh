@@ -1,7 +1,8 @@
 #!/bin/bash
 touch /app/log.txt
 
-# Запускаем подписку через mosquitto_sub в фоне
+echo "=== STARTING mosquitto_sub ===" >> /app/log.txt
+
 mosquitto_sub \
   -h 192.168.2.150 -p 36669 \
   --cert /ssl/rcm_certchain_pem.cer \
@@ -10,5 +11,5 @@ mosquitto_sub \
   -u hisenseservice -P multimqttservice \
   -v -t "#" >> /app/log.txt 2>&1 &
 
-# Запускаем web-интерфейс
+echo "=== STARTING Flask WEB UI ===" >> /app/log.txt
 python3 webserver.py
