@@ -5,7 +5,7 @@ const options = {
   host: "192.168.2.150",
   port: 36669,
   protocol: "mqtts",
-  clientId: "mqtt-explorer-6ac7432f",
+  clientId: "mqtt-explorer-" + Math.random().toString(16).substr(2, 8),
   username: "hisenseservice",
   password: "multimqttservice",
   cert: fs.readFileSync("/ssl/rcm_certchain_pem.cer"),
@@ -13,23 +13,23 @@ const options = {
   rejectUnauthorized: false
 };
 
-const client = mqtt.connect(options);
+const hisenseClient = mqtt.connect(options);
+const localClient = mqtt.connect("mqtt://localhost:1883");
 
-client.on("connect", () => {
+hisenseClient.on("connect", () => {
   console.log("✅ Connected to Hisense MQTT");
-  client.subscribe("#", (err) => {
-    if (err) {
-      console.log("❌ Subscribe error:", err);
-    } else {
-      console.log("📡 Subscribed to all topics");
-    }
+  hisenseClient.subscribe("#", (err) => {
+    if (err) console.log("❌ Subscribe error:", err);
+    else console.log("📡 Subscribed to all topics");
   });
 });
 
-client.on("message", (topic, message) => {
-  console.log(`📩 [${topic}] ${message.toString()}`);
+hisenseClient.on("message", (topic, message) => {
+  const payload = message.toString();
+  console.log(`📩 [${topic}] ${payload}`);
+  localClient.publish(`hisense/${topic}`, payload);
 });
 
-client.on("error", (err) => {
+hisenseClient.on("error", (err) => {
   console.error("❌ Connection error:", err);
 });

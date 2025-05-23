@@ -1,8 +1,8 @@
 {
-  "name": "Hisense MQTT Bridge (Node.js)",
-  "version": "2.0",
+  "name": "Hisense MQTT Bridge (HA mirror)",
+  "version": "2.1",
   "slug": "hisense_mqtt_bridge",
-  "description": "MQTT-мост на Node.js с полной эмуляцией MQTT Explorer для телевизоров Hisense.",
+  "description": "MQTT-мост для Hisense TV с зеркалированием топиков в локальный MQTT Home Assistant.",
   "startup": "application",
   "boot": "auto",
   "webui": "http://[HOST]:[PORT:8099]",

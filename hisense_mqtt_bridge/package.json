@@ -1,7 +1,7 @@
 {
   "name": "hisense-mqtt-bridge",
-  "version": "1.0.0",
-  "description": "MQTT Bridge for Hisense TV using Node.js",
+  "version": "2.1.0",
+  "description": "MQTT Bridge for Hisense TV using Node.js and forwarding to Home Assistant",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
