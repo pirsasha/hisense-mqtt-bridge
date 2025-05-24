@@ -1,3 +1,4 @@
+
 const mqtt = require("mqtt");
 const fs = require("fs");
 
@@ -37,7 +38,6 @@ hisenseClient.on("message", (topic, message) => {
   console.log(`📩 [${topic}] ${payload}`);
   localClient.publish(`hisense/${cleanTopic}`, payload);
 
-  // Автоопределение UUID
   if (topic.endsWith("uuidlist/data")) {
     try {
       const uuids = JSON.parse(payload);
@@ -62,13 +62,49 @@ localClient.on("connect", () => {
 
 localClient.on("message", (topic, message) => {
   const command = message.toString().trim();
+
   if (topic === "hisense/command") {
     if (!hisenseUUID) {
       console.warn("⚠️ UUID ещё не получен. Команда не отправлена.");
       return;
     }
+
+    // Если это JSON и содержит ключ launch
+    try {
+      const obj = JSON.parse(command);
+      if (obj.launch === "kinopoisk") {
+        const appTopic = `/remoteapp/tv/ui_service/${hisenseUUID}$vidaa_common/actions/launchapp`;
+        const appPayload = {
+          appId: "1509",
+          name: "Кинопоиск",
+          provider: 0,
+          storeType: 99,
+          url: "url1509",
+          urlType: 0
+        };
+        hisenseClient.publish(appTopic, JSON.stringify(appPayload));
+        console.log(`📤 Launched app: Кинопоиск → ${appTopic}`);
+        return;
+      } else if (obj.launch === "youtube") {
+        const appTopic = `/remoteapp/tv/ui_service/${hisenseUUID}$vidaa_common/actions/launchapp`;
+        const appPayload = {
+          appId: "3",
+          name: "YouTube",
+          provider: 0,
+          storeType: 98,
+          url: "url3",
+          urlType: 0
+        };
+        hisenseClient.publish(appTopic, JSON.stringify(appPayload));
+        console.log(`📤 Launched app: YouTube → ${appTopic}`);
+        return;
+      }
+    } catch (e) {
+      // Not a JSON with launch command
+    }
+
     const targetTopic = `/remoteapp/tv/remote_service/${hisenseUUID}$vidaa_common/actions/sendkey`;
-    hisenseClient.publish(targetTopic, command);
+    hisenseClient.publish(targetTopic, JSON.stringify({ keycode: command }));
     console.log(`📤 Sent command: ${command} → ${targetTopic}`);
   }
 });
