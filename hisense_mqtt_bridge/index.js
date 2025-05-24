@@ -26,7 +26,6 @@ const localClient = mqtt.connect({
 
 let hisenseUUID = null;
 
-// Обработка сообщений от Hisense
 hisenseClient.on("connect", () => {
   console.log("✅ Connected to Hisense MQTT");
   hisenseClient.subscribe("#", () => console.log("📡 Subscribed to all topics"));
@@ -52,7 +51,6 @@ hisenseClient.on("message", (topic, message) => {
   }
 });
 
-// Обработка команд от Home Assistant
 localClient.on("connect", () => {
   console.log("✅ Connected to local MQTT");
   localClient.subscribe("hisense/command", (err) => {
@@ -69,9 +67,9 @@ localClient.on("message", (topic, message) => {
       return;
     }
 
-    // Если это JSON и содержит ключ launch
     try {
       const obj = JSON.parse(command);
+
       if (obj.launch === "kinopoisk") {
         const appTopic = `/remoteapp/tv/ui_service/${hisenseUUID}$vidaa_common/actions/launchapp`;
         const appPayload = {
@@ -98,13 +96,22 @@ localClient.on("message", (topic, message) => {
         hisenseClient.publish(appTopic, JSON.stringify(appPayload));
         console.log(`📤 Launched app: YouTube → ${appTopic}`);
         return;
+      } else if (typeof obj.volume === "number") {
+        const volTopic = `/remoteapp/mobile/broadcast/platform_service/actions/volumechange`;
+        const volPayload = {
+          volume_type: 1,
+          volume_value: obj.volume
+        };
+        hisenseClient.publish(volTopic, JSON.stringify(volPayload));
+        console.log(`🔊 Volume set to ${obj.volume} → ${volTopic}`);
+        return;
       }
     } catch (e) {
-      // Not a JSON with launch command
+      // не JSON — команда типа KEY_HOME
     }
 
     const targetTopic = `/remoteapp/tv/remote_service/${hisenseUUID}$vidaa_common/actions/sendkey`;
-    hisenseClient.publish(targetTopic, JSON.stringify({ keycode: command }));
+    hisenseClient.publish(targetTopic, command);
     console.log(`📤 Sent command: ${command} → ${targetTopic}`);
   }
 });
