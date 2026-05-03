@@ -26,8 +26,19 @@ let hisenseUUID = null;
 
 function sendKey(keycode) {
   const targetTopic = `/remoteapp/tv/remote_service/${hisenseUUID}$vidaa_common/actions/sendkey`;
-  hisenseClient.publish(targetTopic, JSON.stringify({ keycode }));
+
+  // Важно: Hisense ждёт строку KEY_HOME, а не {"keycode":"KEY_HOME"}
+  hisenseClient.publish(targetTopic, keycode);
+
   console.log(`📤 Sent key: ${keycode} → ${targetTopic}`);
+}
+
+function sendKeySequence(keys, delayMs = 700) {
+  keys.forEach((key, index) => {
+    setTimeout(() => {
+      sendKey(key);
+    }, index * delayMs);
+  });
 }
 
 function launchApp(appPayload) {
@@ -37,44 +48,22 @@ function launchApp(appPayload) {
 }
 
 function switchSource(source) {
-  const sourceMap = {
-    hdmi1: {
-      sourceid: "HDMI1",
-      sourcename: "HDMI1",
-      displayname: "HDMI1"
-    },
-    hdmi2: {
-      sourceid: "HDMI2",
-      sourcename: "HDMI2",
-      displayname: "HDMI2"
-    },
-    hdmi3: {
-      sourceid: "HDMI3",
-      sourcename: "HDMI3",
-      displayname: "HDMI3"
-    }
+  // Надёжнее через меню источников, потому что прямой sourceswitch не всегда принимается ТВ
+  const sourceSequences = {
+    hdmi1: ["KEY_SOURCE", "KEY_OK"],
+    hdmi2: ["KEY_SOURCE", "KEY_DOWN", "KEY_OK"],
+    hdmi3: ["KEY_SOURCE", "KEY_DOWN", "KEY_DOWN", "KEY_OK"]
   };
 
-  const src = sourceMap[source];
+  const keys = sourceSequences[source];
 
-  if (!src) {
+  if (!keys) {
     console.warn("⚠️ Неизвестный источник:", source);
     return;
   }
 
-  const sourceTopic = `/remoteapp/tv/ui_service/${hisenseUUID}$vidaa_common/actions/sourceswitch`;
-
-  const sourcePayload = {
-    sourceid: src.sourceid,
-    sourcename: src.sourcename,
-    displayname: src.displayname,
-    is_signal: 1,
-    is_lock: 0,
-    hotel_mode: 0
-  };
-
-  hisenseClient.publish(sourceTopic, JSON.stringify(sourcePayload));
-  console.log(`📤 Source switch: ${source} → ${sourceTopic}`);
+  sendKeySequence(keys, 800);
+  console.log(`📤 HDMI sequence: ${source}`);
 }
 
 const apps = {
@@ -266,6 +255,8 @@ localClient.on("message", (topic, message) => {
     }
 
     if (typeof obj.volume === "number") {
+      // Если прямое выставление громкости не сработает,
+      // используй volume up/down кнопками.
       const volTopic = `/remoteapp/mobile/broadcast/platform_service/actions/volumechange`;
       const volPayload = {
         volume_type: 1,
