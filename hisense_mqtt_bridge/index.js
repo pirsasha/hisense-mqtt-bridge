@@ -24,21 +24,13 @@ const localClient = mqtt.connect({
 
 let hisenseUUID = null;
 
+// UUID из логов приложения для changesource / sendkey
+const SOURCE_UUID = "f1:39:b0:73:5a:ad";
+
 function sendKey(keycode) {
-  const targetTopic = `/remoteapp/tv/remote_service/${hisenseUUID}$vidaa_common/actions/sendkey`;
-
-  // Важно: Hisense ждёт строку KEY_HOME, а не {"keycode":"KEY_HOME"}
+  const targetTopic = `/remoteapp/tv/remote_service/${SOURCE_UUID}$vidaa_common/actions/sendkey`;
   hisenseClient.publish(targetTopic, keycode);
-
   console.log(`📤 Sent key: ${keycode} → ${targetTopic}`);
-}
-
-function sendKeySequence(keys, delayMs = 700) {
-  keys.forEach((key, index) => {
-    setTimeout(() => {
-      sendKey(key);
-    }, index * delayMs);
-  });
 }
 
 function launchApp(appPayload) {
@@ -48,22 +40,81 @@ function launchApp(appPayload) {
 }
 
 function switchSource(source) {
-  // Надёжнее через меню источников, потому что прямой sourceswitch не всегда принимается ТВ
-  const sourceSequences = {
-    hdmi1: ["KEY_SOURCE", "KEY_OK"],
-    hdmi2: ["KEY_SOURCE", "KEY_DOWN", "KEY_OK"],
-    hdmi3: ["KEY_SOURCE", "KEY_DOWN", "KEY_DOWN", "KEY_OK"]
+  const sourceMap = {
+    hdmi1: {
+      displayname: "HDMI1",
+      displayname2: "",
+      has_signal: "1",
+      hotel_mode: "0",
+      httpIcon: "",
+      is_lock: "0",
+      is_signal: "1",
+      sourceid: "HDMI1",
+      sourcename: "HDMI1"
+    },
+    hdmi2: {
+      displayname: "HDMI2",
+      displayname2: "AX 3100G",
+      has_signal: "0",
+      hotel_mode: "0",
+      httpIcon: "",
+      is_lock: "0",
+      is_signal: "0",
+      sourceid: "HDMI2",
+      sourcename: "HDMI2"
+    },
+    hdmi3: {
+      displayname: "HDMI3",
+      displayname2: "",
+      has_signal: "0",
+      hotel_mode: "0",
+      httpIcon: "",
+      is_lock: "0",
+      is_signal: "0",
+      sourceid: "HDMI3",
+      sourcename: "HDMI3"
+    },
+    tv: {
+      displayname: "TV",
+      displayname2: "",
+      has_signal: "0",
+      hotel_mode: "0",
+      httpIcon: "",
+      is_lock: "0",
+      is_signal: "0",
+      sourceid: "TV",
+      sourcename: "TV"
+    },
+    av: {
+      displayname: "AV",
+      displayname2: "",
+      has_signal: "0",
+      hotel_mode: "0",
+      httpIcon: "",
+      is_lock: "0",
+      is_signal: "0",
+      sourceid: "AVS",
+      sourcename: "AV"
+    }
   };
 
-  const keys = sourceSequences[source];
+  const src = sourceMap[source];
 
-  if (!keys) {
+  if (!src) {
     console.warn("⚠️ Неизвестный источник:", source);
     return;
   }
 
-  sendKeySequence(keys, 800);
-  console.log(`📤 HDMI sequence: ${source}`);
+  const topic = `/remoteapp/tv/ui_service/${SOURCE_UUID}$vidaa_common/actions/changesource`;
+  hisenseClient.publish(topic, JSON.stringify(src));
+
+  console.log(`📤 Change source: ${source} → ${topic}`);
+}
+
+function changeVolume(code) {
+  const topic = `/remoteapp/tv/platform_service/${SOURCE_UUID}$vidaa_common/actions/changevolume`;
+  hisenseClient.publish(topic, String(code));
+  console.log(`🔊 Change volume: ${code} → ${topic}`);
 }
 
 const apps = {
@@ -145,9 +196,12 @@ const apps = {
 
 const keyMap = {
   home: "KEY_HOME",
-  back: "KEY_BACK",
+  back: "KEY_RETURNS",
+  return: "KEY_RETURNS",
+
   ok: "KEY_OK",
   enter: "KEY_OK",
+
   up: "KEY_UP",
   down: "KEY_DOWN",
   left: "KEY_LEFT",
@@ -155,6 +209,7 @@ const keyMap = {
 
   power: "KEY_POWER",
   poweroff: "KEY_POWER",
+
   menu: "KEY_MENU",
   source: "KEY_SOURCE",
 
@@ -245,18 +300,16 @@ localClient.on("message", (topic, message) => {
     }
 
     if (obj.volume === "up") {
-      sendKey("KEY_VOLUMEUP");
+      changeVolume(102);
       return;
     }
 
     if (obj.volume === "down") {
-      sendKey("KEY_VOLUMEDOWN");
+      changeVolume(101);
       return;
     }
 
     if (typeof obj.volume === "number") {
-      // Если прямое выставление громкости не сработает,
-      // используй volume up/down кнопками.
       const volTopic = `/remoteapp/mobile/broadcast/platform_service/actions/volumechange`;
       const volPayload = {
         volume_type: 1,
