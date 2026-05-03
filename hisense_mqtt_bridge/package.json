@@ -1,6 +1,6 @@
 {
   "name": "hisense-mqtt-bridge",
-  "version": "2.8.1",
+  "version": "2.9",
   "description": "MQTT Bridge with UUID autodetect for Hisense TV",
   "main": "index.js",
   "scripts": {
