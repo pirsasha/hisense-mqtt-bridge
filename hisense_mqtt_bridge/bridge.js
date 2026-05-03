@@ -11,7 +11,6 @@ const HISENSE_MQTT_PORT = process.env.HISENSE_PORT || '36669';
 
 const HISENSE_TOPIC_PREFIX = '/remoteapp/tv';
 
-// Лучше использовать UUID из логов
 let UUID = process.env.HISENSE_UUID || '9f:08:8f:6b:d1:9b';
 
 const fs_cert = '/ssl/rcm_certchain_pem.cer';
@@ -77,21 +76,18 @@ function sendSource(source) {
     return;
   }
 
-  // Основная попытка переключить источник
   const topic = remoteTopic('ui_service', 'sourceswitch');
   const payload = JSON.stringify({
     sourceid: src.sourceid,
     sourcename: src.sourcename,
-    displayname: src.displayname
+    displayname: src.displayname,
+    is_signal: 1,
+    is_lock: 0,
+    hotel_mode: 0
   });
 
   remoteClient.publish(topic, payload);
   console.log(`📤 Source switch: ${source} → ${topic}`);
-
-  // Дополнительный fallback - открыть меню источников
-  setTimeout(() => {
-    sendKey('KEY_SOURCE');
-  }, 700);
 }
 
 const apps = {
@@ -114,12 +110,60 @@ const apps = {
   },
 
   rutube: {
-    appId: 'rutube',
-    name: 'rutube',
-    provider: 0,
+    storeType: 99,
+    move: true,
+    appId: '110',
+    name: 'Rutube',
+    from: '',
+    isunInstalled: false,
+    isFav: true,
+    httpIcon: 'data:image/png;base64,iconDownloadhttps://img.vidaahub.com/vidaa/2024/2/202402260758182936.png',
+    url: 'url110'
+  },
+
+  lampa: {
+    url: 'urlLampadebug',
+    isunInstalled: true,
+    name: 'Lampa',
+    from: '',
     storeType: 98,
-    url: 'https://rutube.ru/tv-release/hisense.server/hisense/',
-    urlType: 0
+    appId: 'Lampadebug',
+    move: true,
+    isFav: true,
+    httpIcon: 'data:image/png;base64,iconDownloadhttp://195.58.50.236/img/anb_lampa.png'
+  },
+
+  wink: {
+    url: 'url2102',
+    isunInstalled: false,
+    name: 'Wink',
+    from: '',
+    storeType: 99,
+    appId: '2102',
+    move: true,
+    isFav: true
+  },
+
+  ivi: {
+    url: 'url53',
+    isunInstalled: false,
+    name: 'Иви',
+    from: '',
+    storeType: 98,
+    appId: '53',
+    move: true,
+    isFav: true
+  },
+
+  vkvideo: {
+    url: 'url2202',
+    isunInstalled: false,
+    name: 'VK Видео',
+    from: '',
+    storeType: 99,
+    appId: '2202',
+    move: true,
+    isFav: true
   }
 };
 
@@ -127,6 +171,7 @@ const keyMap = {
   home: 'KEY_HOME',
   back: 'KEY_BACK',
   ok: 'KEY_OK',
+  enter: 'KEY_OK',
   up: 'KEY_UP',
   down: 'KEY_DOWN',
   left: 'KEY_LEFT',
@@ -154,12 +199,19 @@ remoteClient.on('connect', () => {
   console.log('📡 Subscribed to all Hisense topics');
 });
 
+remoteClient.on('error', (err) => {
+  console.log('❌ Hisense error:', err);
+});
+
+localClient.on('error', (err) => {
+  console.log('❌ Local MQTT error:', err);
+});
+
 remoteClient.on('message', (topic, message) => {
   const text = message.toString();
 
   console.log(`📩 [${topic}] ${text}`);
 
-  // Автоматически берём UUID из телевизора
   if (topic.includes('/uuidlist/data')) {
     try {
       const list = JSON.parse(text);
@@ -172,7 +224,6 @@ remoteClient.on('message', (topic, message) => {
     }
   }
 
-  // Прокидываем всё в локальный MQTT для Home Assistant
   const cleanTopic = topic.startsWith('/') ? topic.slice(1) : topic;
   localClient.publish(`hisense/${cleanTopic}`, text, { retain: true });
 });
@@ -189,7 +240,6 @@ localClient.on('message', (topic, message) => {
   const payload = message.toString();
   console.log(`📥 Local command: ${payload}`);
 
-  // Старый формат: KEY_HOME, KEY_BACK и т.д.
   if (payload.startsWith('KEY_')) {
     sendKey(payload);
     return;
